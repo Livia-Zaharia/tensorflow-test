@@ -35,21 +35,21 @@ MyModel.add(tf.keras.applications.ResNet101(
     include_top = False, weights='imagenet', pooling='avg')
     )
 
-# MyModel.add(tf.keras.applications.InceptionV3(
-#     include_top = False, weights='imagenet', pooling='avg')
-#     )
-
-#  MyModel.add(tf.keras.applications.EfficientNetB7(
-#     include_top = False, weights='imagenet', pooling='avg')
-#     )
-
-# MyModel.add(tf.keras.applications.VGG16(
-#     include_top = False, weights='imagenet', pooling='avg')
-#     )
-
 
 # freezing weights for 1st layer
 MyModel.layers[0].trainable = False
+
+#MyModel.add(tf.keras.layers.Flatten())
+
+#MyModel.add(tf.keras.layers.Dense(66, activation='relu'))
+
+MyModel.add(tf.keras.layers.Dense(66, activation='softmax'))
+
+#MyModel.add(tf.keras.layers.Dense(66, activation='relu'))
+MyModel.compile(optimizer=tf.keras.optimizers.Adam())
+
+#MyModel.compile(optimizer=tf.keras.optimizers.Adam(lr=0.001),loss='categorical_crossentropy',metrics=['accuracy'])
+
 
 
 
@@ -62,9 +62,6 @@ def LoadDataAndDoEssentials(path, h, w):
     img = np.expand_dims(img, 0)
     
     img = tf.keras.applications.resnet50.preprocess_input(img)
-    #img = tf.keras.applications.inception_v3.preprocess_input(img)
-    # img = tf.keras.applications.efficientnet_v2.preprocess_input(img)
-    # img = tf.keras.applications.vgg16.preprocess_input(img)
     
     extractedFeatures = MyModel.predict(img)
     extractedFeatures = np.array(extractedFeatures)
@@ -79,7 +76,7 @@ def ReadAndStoreMyImages(path):
         sk_struct['photo_name'].append(filename)
         imagePath=path/filename
         filenames.append(imagePath)
-        LoadDataAndDoEssentials(imagePath, 112, 112)
+        LoadDataAndDoEssentials(imagePath, 224, 224)
     
 
 
