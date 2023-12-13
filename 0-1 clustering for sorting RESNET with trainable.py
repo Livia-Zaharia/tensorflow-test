@@ -43,9 +43,14 @@ At the moment it has only recieved the input from the resnet structure
 """
 # freezing weights for 1st layer
 MyModel.layers[0].trainable = False
+#MyModel.trainable=False
+#MyModel.layers[-1].trainable = True
 
 MyModel.add(tf.keras.layers.Dense(66, activation='softmax'))
 
+MyModel.compile(optimizer=tf.keras.optimizers.Adam())
+
+MyModel.layers[0].trainable = True
 MyModel.compile(optimizer=tf.keras.optimizers.Adam())
 
 """
@@ -67,6 +72,7 @@ def LoadDataAndDoEssentials(path, h, w):
     img = tf.keras.applications.resnet50.preprocess_input(img)
     
     extractedFeatures = MyModel.predict(img)
+
     extractedFeatures = np.array(extractedFeatures)
 
     #THIS IS THE IMPORTANT ROW IN THIS PART
@@ -86,7 +92,7 @@ def ReadAndStoreMyImages(path):
         
         imagePath=path/filename
         filenames.append(imagePath)
-        LoadDataAndDoEssentials(imagePath, 122, 122)
+        LoadDataAndDoEssentials(imagePath, 112, 112)
     
 
 
