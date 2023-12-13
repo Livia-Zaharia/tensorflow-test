@@ -28,6 +28,11 @@ sk_struct = {
 #      pretrained model                                                               #
 #######################################################################################
 
+"""
+some notes- wioll experiment with dense nets also- residual nets from the application module seem to lackdepth while looking at the image
+so will experment with the other too
+"""
+
 
 
 MyModel = tf.keras.models.Sequential()
