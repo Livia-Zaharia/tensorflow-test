@@ -30,7 +30,30 @@ sk_struct = {
 #######################################################################################
 
 
+model = tf.keras.models.Sequential()
+model.add(tf.keras.layers.Conv2D(64, (7, 7), strides=(2, 2), padding='same', input_shape=(224, 224, 3)))
+model.add(tf.keras.layers.BatchNormalization())
+model.add(tf.keras.layers.Activation('relu'))
+model.add(tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same'))
 
+# Add residual blocks
+for i in range(101):
+   model.add(tf.keras.layers.Conv2D(64, (3, 3), padding='same'))
+   model.add(tf.keras.layers.BatchNormalization())
+   model.add(tf.keras.layers.Activation('relu'))
+   if i % 2 == 0:
+       model.add(tf.keras.layers.Conv2D(64, (3, 3), padding='same'))
+       model.add(tf.keras.layers.BatchNormalization())
+       model.add(tf.keras.layers.Activation('relu'))
+
+# Add output layer
+model.add(tf.keras.layers.GlobalAveragePooling2D())
+model.add(tf.keras.layers.Dense(1000, activation='softmax'))
+
+model.compile(optimizer=tf.keras.optimizers.Adam())
+
+
+'''
 MyModel = tf.keras.models.Sequential()
 MyModel.add(tf.keras.applications.ResNet101(
     include_top = False, weights='imagenet', pooling='avg')
@@ -46,13 +69,17 @@ MyModel.layers[0].trainable = False
 #MyModel.trainable=False
 #MyModel.layers[-1].trainable = True
 
-MyModel.add(tf.keras.layers.Dense(66, activation='softmax'))
+
+#MyModel.add(tf.keras.layers.Dense(66, activation='softmax'))
 
 MyModel.compile(optimizer=tf.keras.optimizers.Adam())
+
+#MyModel1=MyModel
 
 MyModel.layers[0].trainable = True
+#MyModel.add(tf.keras.layers.Dense(3, activation='softmax'))
 MyModel.compile(optimizer=tf.keras.optimizers.Adam())
-
+'''
 """
 Here ends the model as defined by resnet
 """
@@ -68,11 +95,23 @@ def LoadDataAndDoEssentials(path, h, w):
     
     ## Expanding image dims so this represents 1 sample
     img = np.expand_dims(img, 0)
-    
-    img = tf.keras.applications.resnet50.preprocess_input(img)
-    
-    extractedFeatures = MyModel.predict(img)
 
+    img = tf.keras.applications.resnet50.preprocess_input(img)
+
+        
+    extractedFeatures = model.predict(img)
+    
+    """
+    print("AICI SUNT IMG DVS")
+    print(type(img))
+    print(img)
+    print(img.shape)
+    print("si aici xtracted features")
+    print(type(extractedFeatures))
+    print(extractedFeatures)
+    print(extractedFeatures.shape)
+    """
+    
     extractedFeatures = np.array(extractedFeatures)
 
     #THIS IS THE IMPORTANT ROW IN THIS PART
@@ -85,6 +124,7 @@ def LoadDataAndDoEssentials(path, h, w):
 def ReadAndStoreMyImages(path):
 
     filenames_only = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    i=0
     for filename in filenames_only:
 
         #THIS IS THE IMPORTANT ROW IN THIS PART
@@ -92,7 +132,13 @@ def ReadAndStoreMyImages(path):
         
         imagePath=path/filename
         filenames.append(imagePath)
-        LoadDataAndDoEssentials(imagePath, 112, 112)
+        LoadDataAndDoEssentials(imagePath, 224, 224)
+        '''
+        if i>5: 
+            break
+        else: i=i+1
+        '''
+        
     
 
 
