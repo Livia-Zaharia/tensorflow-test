@@ -5,7 +5,6 @@ import os
 import glob
 import shutil
 import sys
-import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 import pandas as pd
@@ -48,13 +47,21 @@ MyModel.summary()
 print(type(MyModel.layers))
 print(len(MyModel.layers))
 print(type(MyModel.layers[0]))
-
+print("++++++++++++++++++++")
 
 # Create a new model that shares the layers of the original model up to the first layer
-new_model = tf.keras.models.Sequential()
-new_model.add(MyModel.layers[0])
-
+new_model = tf.keras.models.Sequential(
+    [
+        MyModel.layers[j]for j in range(5)
+    ]
+)
+new_model.add(tf.keras.layers.Dense(3, activation='softmax'))
 new_model.compile(optimizer=tf.keras.optimizers.Adam())
+print("++++++++++++++++++++")
+print(type(new_model.layers))
+print(len(new_model.layers))
+print(type(new_model.layers[0]))
+print(type(new_model.layers[1]))
 new_model.summary()
 
 """
