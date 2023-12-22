@@ -32,7 +32,7 @@ sk_struct = {
 
 
 MyModel=tf.keras.applications.ResNet101(
-    include_top = False, weights='imagenet', pooling='avg', input_shape=(2000,2000,3))
+    include_top = False, weights='imagenet', pooling='avg')
 
 """
 Some topics about what happened here. A model has been definied in the Resnet structure from Keras
@@ -45,7 +45,6 @@ MyModel.trainable=False
 
 MyModel.compile(optimizer=tf.keras.optimizers.Adam())
 
-#MyModel1=MyModel
 MyModel.trainable=True
 
 MyModel.layers[-1].trainable = False
@@ -104,9 +103,7 @@ def ReadAndStoreMyImages(path):
         
         imagePath=path/filename
         filenames.append(imagePath)
-        LoadDataAndDoEssentials(imagePath, 2000, 2000)
-        print (i)
-        i+=1
+        LoadDataAndDoEssentials(imagePath, 112, 112)
         '''
         if i>1: 
             break
@@ -138,16 +135,22 @@ X = np.array(sk_struct['flattenPhoto'], dtype = 'float64')
 Basically it gets an array of information for every pixel out there
 """
 
-
-
+print("shape of X")
+print (X.shape)
 # #####################################
 # Compute the KNN distance
 knn = NearestNeighbors(n_neighbors=2)
 knn.fit(X)
 distances, indices = knn.kneighbors(X)
+print("shape of distances")
+print(distances.shape)
+print ("shape of indices")
+print(indices.shape)
 array_dist=knn.kneighbors_graph(X).toarray()
 distances = np.sort(distances, axis=0)
 distances = distances[:,1]
+print("shape of distances2")
+print(distances.shape)
 
 eps=distances.mean()
 
@@ -155,12 +158,16 @@ eps=distances.mean()
 dbscan = DBSCAN(eps=eps, min_samples=5)
 dbscan.fit(X)
 
+print("shape of dbscan")
+print(dbscan.labels_.shape)
 
 labels = dbscan.labels_
 
-
+print("shape of levels")
+print(set(labels))
+print(1 if -1 in set(labels) else 0)
 # Count the number of clusters
-num_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+num_clusters = len(set(labels)) - (1 if -1 in set(labels) else 0)
 print('Number of clusters:', num_clusters)
 
 for label in labels:

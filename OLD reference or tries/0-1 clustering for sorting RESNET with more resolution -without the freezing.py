@@ -41,15 +41,12 @@ At the moment it has only recieved the input from the resnet structure
 """
 # freezing weights for 1st layer
 #MyModel.layers[0].trainable = False
-MyModel.trainable=False
+
 
 MyModel.compile(optimizer=tf.keras.optimizers.Adam())
 
 #MyModel1=MyModel
-MyModel.trainable=True
 
-MyModel.layers[-1].trainable = False
-MyModel.compile(optimizer=tf.keras.optimizers.Adam())
 
 
 """

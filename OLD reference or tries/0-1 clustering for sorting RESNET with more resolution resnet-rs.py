@@ -31,8 +31,8 @@ sk_struct = {
 
 
 
-MyModel=tf.keras.applications.ResNet101(
-    include_top = False, weights='imagenet', pooling='avg', input_shape=(2000,2000,3))
+MyModel=tf.keras.applications.ResNetRS420(
+    include_top = False, weights='imagenet', pooling='avg', input_shape=(500,500,3))
 
 """
 Some topics about what happened here. A model has been definied in the Resnet structure from Keras
@@ -68,7 +68,7 @@ def LoadDataAndDoEssentials(path, h, w):
     ## Expanding image dims so this represents 1 sample
     img = np.expand_dims(img, 0)
 
-    img = tf.keras.applications.resnet50.preprocess_input(img)
+    img = tf.keras.applications.resnet_rs.preprocess_input(img)
 
         
     extractedFeatures = MyModel.predict(img)
@@ -104,7 +104,7 @@ def ReadAndStoreMyImages(path):
         
         imagePath=path/filename
         filenames.append(imagePath)
-        LoadDataAndDoEssentials(imagePath, 2000, 2000)
+        LoadDataAndDoEssentials(imagePath, 500, 500)
         print (i)
         i+=1
         '''
