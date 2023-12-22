@@ -86,7 +86,31 @@ def ReadAndStoreMyImages(path):
             break
         else: i=i+1
         '''
+     
+def splitting(c_X,c_unique_labels,c_labels):
+    count_start=0
+    for label in c_unique_labels:
+        new_x=filter_the_array(c_X,label,c_labels)
+        some_x, some_labels=compute_dbscan_labels(new_x)
+       
+        if -1 in some_labels:
+            some_labels=some_labels+1
+       
+        some_labels=some_labels+count_start
         
+        if count_start==0:
+            prev_x=some_x
+            prev_label=some_labels
+        else:
+            prev_x=np.concatenate((prev_x,some_x),axis=0)
+            prev_label=np.concatenate((prev_label,some_labels),axis=0)
+        
+        count_start= max(some_labels)+1
+    
+    return (prev_x,prev_label)
+        
+ 
+ 
         
 def filter_the_array(x_val, filter_val, filter_list):
     return np.fromiter((x for (y,x) in enumerate(x_val) if filter_list[y]==filter_val),
@@ -113,6 +137,10 @@ def compute_dbscan_labels(object_x):
     new_labels = new_dbscan.labels_
     new_unique_labels=set(new_labels)
     print(new_unique_labels)
+    if len(new_unique_labels) != 1:
+        return splitting(new_x,new_unique_labels,new_labels)
+    else:
+        return (new_x, new_labels)
  
 
 
@@ -135,22 +163,22 @@ ReadAndStoreMyImages(TRAINING_DATA_DIR)
 X = np.array(sk_struct['flattenPhoto'], dtype = 'float64')
 
 
-print("shape of X")
-print (X.shape)
+#print("shape of X")
+#print (X.shape)
 
 # Compute the KNN distance
 knn = NearestNeighbors(n_neighbors=2)
 knn.fit(X)
 distances, indices = knn.kneighbors(X)
-print("shape of distances")
-print(distances.shape)
-print ("shape of indices")
-print(indices.shape)
+#print("shape of distances")
+#print(distances.shape)
+#print ("shape of indices")
+#print(indices.shape)
 
 distances = np.sort(distances, axis=0)
 distances = distances[:,1]
-print("shape of distances2")
-print(distances.shape)
+#print("shape of distances2")
+#print(distances.shape)
 
 eps=distances.mean()
 
@@ -158,8 +186,8 @@ eps=distances.mean()
 dbscan = DBSCAN(eps=eps, min_samples=5)
 dbscan.fit(X)
 
-print("shape of dbscan")
-print(dbscan.labels_.shape)
+#print("shape of dbscan")
+#print(dbscan.labels_.shape)
 
 labels = dbscan.labels_
 unique_labels=set(labels)
@@ -167,38 +195,19 @@ unique_labels=set(labels)
 
 # Count the number of clusters
 num_clusters = len(unique_labels) - (1 if -1 in unique_labels else 0)
-print('Number of clusters:', num_clusters)
+#print('Number of clusters:', num_clusters)
+
+data_value, label_value=splitting(X,unique_labels,labels)
 
 
 
-for label in unique_labels:
-    new_x=filter_the_array(X,label,labels)
-    compute_dbscan_labels(new_x)
-
-"""
-
-print("new-x dtype",float_arr.dtype)
-print("new-x shape", float_arr.shape)
-    
-print("new-x element dytpe", type(float_arr[0]))
-print(len(float_arr[0]))
-print(float_arr[0])
-
-print("x dtype",X.dtype)
-print("x shape", X.shape)
-print("x element dytpe", type(X[0]))
-print(len(X[0]))
-print(X[0])
-
-for label in unique_labels:
+for label in set(label_value):
     new_path=data_path/str(label)
     if new_path not in data_path.glob("*"):
         os.mkdir(new_path)
 
 
 # copies images in coresponding folder
-for filename, label in zip(filenames, labels):
+for filename, label in zip(filenames, label_value):
     path=data_path/str(label)
     shutil.copy(filename,path)
-
-"""
