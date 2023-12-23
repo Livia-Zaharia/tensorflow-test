@@ -87,11 +87,12 @@ def ReadAndStoreMyImages(path):
         else: i=i+1
         '''
      
-def splitting(c_X,c_unique_labels,c_labels):
+def splitting(c_X,c_path,c_unique_labels,c_labels):
     count_start=0
     for label in c_unique_labels:
         new_x=filter_the_array(c_X,label,c_labels)
-        some_x, some_labels=compute_dbscan_labels(new_x)
+        new_paths=filter_the_array(c_path,label,c_labels)
+        some_x, some_labels, some_paths=compute_dbscan_labels(new_x,new_paths)
        
         if -1 in some_labels:
             some_labels=some_labels+1
@@ -101,13 +102,15 @@ def splitting(c_X,c_unique_labels,c_labels):
         if count_start==0:
             prev_x=some_x
             prev_label=some_labels
+            prev_path=some_paths
         else:
             prev_x=np.concatenate((prev_x,some_x),axis=0)
             prev_label=np.concatenate((prev_label,some_labels),axis=0)
+            prev_path=np.concatenate((prev_path,some_paths),axis=0)
         
         count_start= max(some_labels)+1
     
-    return (prev_x,prev_label)
+    return (prev_x,prev_label, prev_path)
         
  
  
@@ -118,8 +121,9 @@ def filter_the_array(x_val, filter_val, filter_list):
 
 
 
-def compute_dbscan_labels(object_x):
+def compute_dbscan_labels(object_x, path_x):
     new_x = np.vstack(object_x[:]).astype(np.float64)
+    new_path = np.vstack(path_x[:]).astype(str)
     
     # Compute the KNN distance
     knn.fit(new_x)
@@ -136,11 +140,11 @@ def compute_dbscan_labels(object_x):
 
     new_labels = new_dbscan.labels_
     new_unique_labels=set(new_labels)
-    print(new_unique_labels)
+    #print(new_unique_labels)
     if len(new_unique_labels) != 1:
-        return splitting(new_x,new_unique_labels,new_labels)
+        return splitting(new_x,new_path,new_unique_labels,new_labels)
     else:
-        return (new_x, new_labels)
+        return (new_x, new_labels,new_path)
  
 
 
@@ -197,7 +201,7 @@ unique_labels=set(labels)
 num_clusters = len(unique_labels) - (1 if -1 in unique_labels else 0)
 #print('Number of clusters:', num_clusters)
 
-data_value, label_value=splitting(X,unique_labels,labels)
+data_value, label_value,filename_value=splitting(X,filenames,unique_labels,labels)
 
 
 
@@ -206,8 +210,13 @@ for label in set(label_value):
     if new_path not in data_path.glob("*"):
         os.mkdir(new_path)
 
+#print("filenames", type(filenames), "structure", len(filenames))
+#print("filename_value", type(filename_value), "structure", filename_value.shape,"other", filename_value[0], "+", type(filename_value[0]))
 
 # copies images in coresponding folder
-for filename, label in zip(filenames, label_value):
+for filename, label in zip(filename_value, label_value):
+    #print(label, type(label))
+    #print(filename, type(filename))
     path=data_path/str(label)
-    shutil.copy(filename,path)
+    #print (path, type(path))
+    shutil.copy(str(filename[0]),path)
