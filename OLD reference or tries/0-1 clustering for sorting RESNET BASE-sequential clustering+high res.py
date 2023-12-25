@@ -23,17 +23,17 @@ sk_struct = {
 
 
 MyModel=tf.keras.applications.ResNet101(
-    include_top = False, weights='imagenet', pooling='avg')
+    include_top = False, weights='imagenet',pooling='avg',input_shape=(1000,1000,3))
 
 
 MyModel.trainable=False
 
 MyModel.compile(optimizer=tf.keras.optimizers.Adam())
 
-MyModel.trainable=True
+#MyModel.trainable=True
 
-MyModel.layers[-1].trainable = False
-MyModel.compile(optimizer=tf.keras.optimizers.Adam())
+#MyModel.layers[-1].trainable = False
+#MyModel.compile(optimizer=tf.keras.optimizers.Adam())
 
 
 """
@@ -80,7 +80,7 @@ def ReadAndStoreMyImages(path):
         
         imagePath=path/filename
         filenames.append(imagePath)
-        LoadDataAndDoEssentials(imagePath, 112, 112)
+        LoadDataAndDoEssentials(imagePath, 1000, 1000)
         '''
         if i>1: 
             break
