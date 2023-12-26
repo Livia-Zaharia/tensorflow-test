@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import awave
 
 from sklearn.cluster import DBSCAN
 from sklearn.neighbors import NearestNeighbors
@@ -20,31 +21,24 @@ sk_struct = {
     'flattenPhoto' : []
     }
 
-
+############### RESNET MODEL DEFINITION
 
 MyModel=tf.keras.applications.ResNet101(
-    include_top = False, weights='imagenet',pooling='avg',input_shape=(1000,1000,3))
+    include_top = False, weights='imagenet',pooling='avg')
 
 
 MyModel.trainable=False
 
 MyModel.compile(optimizer=tf.keras.optimizers.Adam())
 
-#MyModel.trainable=True
 
-#MyModel.layers[-1].trainable = False
-#MyModel.compile(optimizer=tf.keras.optimizers.Adam())
+################# ADAPTATIVE WAVELETS
 
-
-"""
-Here ends the model as defined by resnet
-"""
+wavelet_features = awave.transform1d.DWT1d(wave='db3', mode='zero')
 
 
 
-
-
-def LoadDataAndDoEssentials(path, h, w):
+def load_data_and_basic_ops(path, h, w):
     """
     Part2/2 of the basic setup used to process the images. It is called by part 1/2
     """
@@ -56,8 +50,12 @@ def LoadDataAndDoEssentials(path, h, w):
     img = np.expand_dims(img, 0)
 
     img = tf.keras.applications.resnet50.preprocess_input(img)
+    
+    
    
-    extractedFeatures = MyModel.predict(img)
+    extractedFeatures = wavelet_features(MyModel.predict(img))
+    
+    #extractedFeatures=wavelet_features.fit(extractedFeatures)
         
     extractedFeatures = np.array(extractedFeatures)
 
@@ -65,7 +63,7 @@ def LoadDataAndDoEssentials(path, h, w):
     sk_struct['flattenPhoto'].append(extractedFeatures.flatten())
     
 
-def ReadAndStoreMyImages(path):
+def read_and_store_img(path):
     """
     Part1/2 of the basic setup used to process the images. 
     It is called from main at the moment and sets up the looping
@@ -80,12 +78,12 @@ def ReadAndStoreMyImages(path):
         
         imagePath=path/filename
         filenames.append(imagePath)
-        LoadDataAndDoEssentials(imagePath, 1000, 1000)
-        '''
+        load_data_and_basic_ops(imagePath, 224, 224)
+        
         if i>1: 
             break
         else: i=i+1
-        '''
+        
      
 def splitting(c_X,c_path,c_unique_labels,c_labels):
     count_start=0
@@ -111,14 +109,11 @@ def splitting(c_X,c_path,c_unique_labels,c_labels):
         count_start= max(some_labels)+1
     
     return (prev_x,prev_label, prev_path)
-        
- 
- 
+         
         
 def filter_the_array(x_val, filter_val, filter_list):
     return np.fromiter((x for (y,x) in enumerate(x_val) if filter_list[y]==filter_val),
                       dtype = 'object') 
-
 
 
 def compute_dbscan_labels(object_x, path_x):
@@ -157,12 +152,10 @@ TRAINING_DATA_DIR = TRAINING_DATA_DIR/'TRAIN'
 TRAINING_DATA_DIR = TRAINING_DATA_DIR/'TRAINING_DATA'
 
 filenames=[]
-ReadAndStoreMyImages(TRAINING_DATA_DIR)
+read_and_store_img(TRAINING_DATA_DIR)
 
 
-######################################################
-#        lets now do clustering                      #
-######################################################
+##################################### CLUSTERING
 
 X = np.array(sk_struct['flattenPhoto'], dtype = 'float64')
 
@@ -170,7 +163,7 @@ X = np.array(sk_struct['flattenPhoto'], dtype = 'float64')
 #print("shape of X")
 #print (X.shape)
 
-# Compute the KNN distance
+############################# Compute the KNN distance
 knn = NearestNeighbors(n_neighbors=2)
 knn.fit(X)
 distances, indices = knn.kneighbors(X)
@@ -186,7 +179,7 @@ distances = distances[:,1]
 
 eps=distances.mean()
 
-# Apply DBSCAN
+############# Apply DBSCAN
 dbscan = DBSCAN(eps=eps, min_samples=5)
 dbscan.fit(X)
 
@@ -197,7 +190,7 @@ labels = dbscan.labels_
 unique_labels=set(labels)
 
 
-# Count the number of clusters
+######### Count the number of clusters
 num_clusters = len(unique_labels) - (1 if -1 in unique_labels else 0)
 #print('Number of clusters:', num_clusters)
 
