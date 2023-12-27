@@ -10,10 +10,10 @@ import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-import awave
 
 from sklearn.cluster import DBSCAN
 from sklearn.neighbors import NearestNeighbors
+from wavelet import WaveletTransformLayer as wtl
 
 
 sk_struct = {
@@ -31,11 +31,16 @@ MyModel.trainable=False
 
 MyModel.compile(optimizer=tf.keras.optimizers.Adam())
 
-
 ################# ADAPTATIVE WAVELETS
 
-wavelet_features = awave.transform1d.DWT1d(wave='db3', mode='zero')
+# Get the output tensor of the last layer of the ResNet model
+last_layer = MyModel.output
 
+# Apply the custom wavelet transform layer to the output tensor
+wavelet_transform = wtl()(last_layer)
+
+# Create a new model that includes the wavelet transform layer
+model = tf.keras.models.Model(inputs=MyModel.input, outputs=wavelet_transform)
 
 
 def load_data_and_basic_ops(path, h, w):
@@ -46,18 +51,37 @@ def load_data_and_basic_ops(path, h, w):
     img = cv2.imread(str(path))
     img = cv2.resize(img, (h, w))
     
+    print ("image cv")
+    print(type(img))
+    print (img.shape)
+    #print(img)
+        
     ## Expanding image dims so this represents 1 sample
     img = np.expand_dims(img, 0)
-
-    img = tf.keras.applications.resnet50.preprocess_input(img)
-    
-    
+    print ("image dupa expansion")
+    print(type(img))
+    print (img.shape)
+    #print(img)
    
-    extractedFeatures = wavelet_features(MyModel.predict(img))
-    
-    #extractedFeatures=wavelet_features.fit(extractedFeatures)
+    img = tf.keras.applications.resnet50.preprocess_input(img)
+    print ("image dupa preprocess")
+    print(type(img))
+    print (img.shape)
+
+       
+    extractedFeatures = MyModel.predict(img)
+    print ("extr feat")
+    print(type(extractedFeatures))
+    print (extractedFeatures.shape)
+    print(extractedFeatures)
+
         
     extractedFeatures = np.array(extractedFeatures)
+    
+    print ("extracted features after np array")
+    print(type(extractedFeatures))
+    print (extractedFeatures.shape)
+    print(extractedFeatures)
 
     #THIS IS THE IMPORTANT ROW IN THIS PART
     sk_struct['flattenPhoto'].append(extractedFeatures.flatten())
