@@ -52,36 +52,37 @@ def load_data_and_basic_ops(path, h, w):
     img = cv2.resize(img, (h, w))
     
     print ("image cv")
-    print(type(img))
-    print (img.shape)
+    #print(type(img))
+    #print (img.shape)
     #print(img)
         
     ## Expanding image dims so this represents 1 sample
     img = np.expand_dims(img, 0)
-    print ("image dupa expansion")
-    print(type(img))
-    print (img.shape)
+    #print ("image dupa expansion")
+    #print(type(img))
+    #print (img.shape)
     #print(img)
    
     img = tf.keras.applications.resnet50.preprocess_input(img)
-    print ("image dupa preprocess")
-    print(type(img))
-    print (img.shape)
+    #print ("image dupa preprocess")
+    #print(type(img))
+    #print (img.shape)
 
        
     extractedFeatures = MyModel.predict(img)
-    print ("extr feat")
-    print(type(extractedFeatures))
-    print (extractedFeatures.shape)
-    print(extractedFeatures)
+    extractedFeatures2=model(MyModel.output)
+    #print ("extr feat")
+    #print(type(extractedFeatures))
+    #print (extractedFeatures.shape)
+    #print(extractedFeatures)
 
         
     extractedFeatures = np.array(extractedFeatures)
     
-    print ("extracted features after np array")
-    print(type(extractedFeatures))
-    print (extractedFeatures.shape)
-    print(extractedFeatures)
+    #print ("extracted features after np array")
+    #print(type(extractedFeatures))
+    #print (extractedFeatures.shape)
+    #print(extractedFeatures)
 
     #THIS IS THE IMPORTANT ROW IN THIS PART
     sk_struct['flattenPhoto'].append(extractedFeatures.flatten())
@@ -103,11 +104,11 @@ def read_and_store_img(path):
         imagePath=path/filename
         filenames.append(imagePath)
         load_data_and_basic_ops(imagePath, 224, 224)
-        
+        '''
         if i>1: 
             break
         else: i=i+1
-        
+        '''
      
 def splitting(c_X,c_path,c_unique_labels,c_labels):
     count_start=0
