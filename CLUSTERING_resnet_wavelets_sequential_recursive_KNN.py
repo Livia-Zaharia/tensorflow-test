@@ -32,15 +32,19 @@ MyModel.trainable=False
 MyModel.compile(optimizer=tf.keras.optimizers.Adam())
 
 ################# ADAPTATIVE WAVELETS
-
+print("ïnput before transform")
+print(MyModel.input.shape)
 # Get the output tensor of the last layer of the ResNet model
 last_layer = MyModel.output
 
 # Apply the custom wavelet transform layer to the output tensor
-wavelet_transform = wtl()(last_layer)
 
+wavelet_transform = wtl()(last_layer)
+print("ïnput after transform")
+print(MyModel.input.shape)
 # Create a new model that includes the wavelet transform layer
 model = tf.keras.models.Model(inputs=MyModel.input, outputs=wavelet_transform)
+
 
 
 def load_data_and_basic_ops(path, h, w):
@@ -70,7 +74,8 @@ def load_data_and_basic_ops(path, h, w):
 
        
     extractedFeatures = MyModel.predict(img)
-    extractedFeatures2=model(MyModel.output)
+    
+    extractedFeatures2=model(MyModel.input)
     #print ("extr feat")
     #print(type(extractedFeatures))
     #print (extractedFeatures.shape)

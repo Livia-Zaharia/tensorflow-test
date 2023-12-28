@@ -1,4 +1,5 @@
 import tensorflow as tf
+
 from tensorflow_wavelets.Layers.DWT import DWT
 
 
@@ -8,7 +9,12 @@ class WaveletTransformLayer(tf.keras.layers.Layer):
     self.wavelet_transform = DWT()
 
   def call(self, inputs):
-    # Reshape the input tensor to a 3D tensor
+    
+    # Calculate padding size
+    padding_size = tf.cast(tf.math.pow(tf.math.ceil(tf.math.sqrt(float(tf.shape(inputs)[-1]))), 2) - tf.cast(tf.shape(inputs)[-1], tf.float32), tf.int32)
+    # Add padding to inputs
+
+    inputs = tf.pad(inputs, [[0, 0], [0, padding_size]])
     inputs = tf.reshape(inputs, (1, 1,(tf.sqrt(float(tf.shape(inputs)[-1]))), (tf.sqrt(float(tf.shape(inputs)[-1])))))
     coeffs = self.wavelet_transform(inputs)
     return coeffs
