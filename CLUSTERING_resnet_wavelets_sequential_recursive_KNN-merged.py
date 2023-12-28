@@ -26,24 +26,23 @@ sk_struct = {
 MyModel=tf.keras.applications.ResNet101(
     include_top = False, weights='imagenet',pooling='avg')
 
-
 MyModel.trainable=False
 
 MyModel.compile(optimizer=tf.keras.optimizers.Adam())
 
+
 ################# ADAPTATIVE WAVELETS
-print("ïnput before transform")
-print(MyModel.input.shape)
+
 # Get the output tensor of the last layer of the ResNet model
 last_layer = MyModel.output
 
 # Apply the custom wavelet transform layer to the output tensor
 
 wavelet_transform = wtl()(last_layer)
-print("ïnput after transform")
-print(MyModel.input.shape)
+
 # Create a new model that includes the wavelet transform layer
 model = tf.keras.models.Model(inputs=MyModel.input, outputs=wavelet_transform)
+print(wavelet_transform.shape)
 
 
 
@@ -55,7 +54,7 @@ def load_data_and_basic_ops(path, h, w):
     img = cv2.imread(str(path))
     img = cv2.resize(img, (h, w))
     
-    print ("image cv")
+    #print ("image cv")
     #print(type(img))
     #print (img.shape)
     #print(img)
@@ -74,8 +73,9 @@ def load_data_and_basic_ops(path, h, w):
 
        
     extractedFeatures = MyModel.predict(img)
-    
     extractedFeatures2=model(MyModel.input)
+  
+
     #print ("extr feat")
     #print(type(extractedFeatures))
     #print (extractedFeatures.shape)
@@ -105,7 +105,8 @@ def read_and_store_img(path):
 
         #THIS IS THE IMPORTANT ROW IN THIS PART
         sk_struct['photo_name'].append(filename)
-        
+        print(i)
+        i+=1
         imagePath=path/filename
         filenames.append(imagePath)
         load_data_and_basic_ops(imagePath, 224, 224)
