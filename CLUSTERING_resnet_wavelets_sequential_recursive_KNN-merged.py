@@ -42,7 +42,7 @@ wavelet_transform = wtl()(last_layer)
 
 # Create a new model that includes the wavelet transform layer
 model = tf.keras.models.Model(inputs=MyModel.input, outputs=wavelet_transform)
-print(wavelet_transform.shape)
+
 
 
 
@@ -74,8 +74,54 @@ def load_data_and_basic_ops(path, h, w):
        
     extractedFeatures = MyModel.predict(img)
     extractedFeatures2=model(MyModel.input)
-  
+    #should be of shape [46,46] ideea e sa scot padding si sa le aplic pe cele doua ca filtre hopefully
+    filter1=extractedFeatures2[0][0]
+    filter2=extractedFeatures2[0][1]
+    #print("after extraction")
+    #print(filter1.shape)
+    #print(filter2.shape)
+    
+    filter1=tf.reshape(filter1,(23,92))
+    filter2=tf.reshape(filter2,(23,92))
+    
+    #print("after reshape")
+    #print(filter1.shape)
+    #print(filter2.shape)
+    
+    
+    filter1=filter1[:,2:-1]
+    filter2=filter2[:,2:-1]
+    
+    
+    #print("after slicing")
+    #print(filter1.shape)
+    #print(filter2.shape)
+    
+    filter1 = tf.reshape(filter1, [-1])
+    filter2 = tf.reshape(filter2, [-1])
+    
+    new_element = tf.constant([0.0]) # The new element you want to add
 
+    # Add an extra dimension to the tensor
+    tensor_extended = tf.expand_dims(filter1, axis=0)
+    new_element = tf.expand_dims(new_element, axis=0)
+    
+    # Append the new element to the tensor
+    tensor_extended = tf.concat([tensor_extended, new_element],axis=1)
+    filter1=tensor_extended
+    
+    
+     # Add an extra dimension to the tensor
+    tensor_extended = tf.expand_dims(filter2, axis=0)
+
+    # Append the new element to the tensor
+    tensor_extended = tf.concat([tensor_extended, new_element], axis=1)
+    filter2=tensor_extended
+    
+    
+    #print("after everything")
+    #print(filter1.shape)
+    #print(filter2.shape)
     #print ("extr feat")
     #print(type(extractedFeatures))
     #print (extractedFeatures.shape)
@@ -83,6 +129,11 @@ def load_data_and_basic_ops(path, h, w):
 
         
     extractedFeatures = np.array(extractedFeatures)
+    filter1 = np.array(filter1)
+    filter2 = np.array(filter2)
+    
+    extractedFeatures=np.add(extractedFeatures,filter1)
+    extractedFeatures=np.add(extractedFeatures,filter2)
     
     #print ("extracted features after np array")
     #print(type(extractedFeatures))
