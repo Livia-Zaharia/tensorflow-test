@@ -14,8 +14,6 @@ class WaveletTransformLayer(tf.keras.layers.Layer):
     padding_size = tf.cast(tf.math.pow(tf.math.ceil(tf.math.sqrt(float(tf.shape(inputs)[-1]))), 2) - tf.cast(tf.shape(inputs)[-1], tf.float32), tf.int32)
     # Add padding to inputs
     
-    original_inputs=inputs
-
     inputs = tf.pad(inputs, [[0, 0], [0, padding_size]])
     inputs = tf.reshape(inputs, (1, 1,(tf.sqrt(float(tf.shape(inputs)[-1]))), (tf.sqrt(float(tf.shape(inputs)[-1])))))
     coeffs = self.wavelet_transform(inputs)
