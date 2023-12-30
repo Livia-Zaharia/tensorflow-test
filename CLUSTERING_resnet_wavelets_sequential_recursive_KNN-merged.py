@@ -73,14 +73,17 @@ def load_data_and_basic_ops(path, h, w):
 
        
     extractedFeatures = MyModel.predict(img)
-    extractedFeatures2=model(MyModel.input)
+    
+    filter1,filter2=model.predict(img)
+    
     #should be of shape [46,46] ideea e sa scot padding si sa le aplic pe cele doua ca filtre hopefully
-    filter1=extractedFeatures2[0][0]
-    filter2=extractedFeatures2[0][1]
-    #print("after extraction")
+    #filter1=extractedFeatures2[0][0]
+    #filter2=extractedFeatures2[0][1]
+    print("after extraction")
+    #print(extractedFeatures2.shape)
     #print(filter1.shape)
     #print(filter2.shape)
-    
+    '''
     filter1=tf.reshape(filter1,(23,92))
     filter2=tf.reshape(filter2,(23,92))
     
@@ -127,10 +130,15 @@ def load_data_and_basic_ops(path, h, w):
     #print (extractedFeatures.shape)
     #print(extractedFeatures)
 
+      '''
         
     extractedFeatures = np.array(extractedFeatures)
+    #here fail because it is a tensor- have to covert it in a call
+    
+    '''
     filter1 = np.array(filter1)
     filter2 = np.array(filter2)
+    '''
     
     extractedFeatures=np.add(extractedFeatures,filter1)
     extractedFeatures=np.add(extractedFeatures,filter2)
