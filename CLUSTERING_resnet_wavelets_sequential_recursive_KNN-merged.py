@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import time
 
 from sklearn.cluster import DBSCAN
 from sklearn.neighbors import NearestNeighbors
@@ -69,6 +70,9 @@ def main():
 
 
 def create_global_structures():
+    """
+    Defines some global structures used in the whole script. They are centralized here
+    """
     
     #strucutre in which to hold the image and its name
     global sk_struct
@@ -80,11 +84,19 @@ def create_global_structures():
     #the resnet and wavelet models
     create_models()
     
-    #the filenames list
+    #the filenames list where the names are stored after the recursive
     global filenames
     filenames=[]
 
 def create_models():
+    """
+    Define the models. There are only two of them
+    The Resnet model- comes from tf.keras.applications- and because it is not defined from 
+    tf.keras.model.sequential it is taken as a functional one
+    
+    the wavelet model- created because the wtl class only creates a layer- not a model
+    the model is also a functional API one and distills the the resnet
+    """
     ############### RESNET MODEL DEFINITION
 
     global MyModel
@@ -107,9 +119,52 @@ def create_models():
     model = tf.keras.models.Model(inputs=MyModel.input, outputs=wavelet_transform)
 
 
+def read_and_store_img(path):
+    """
+    Part1/2 of the basic setup used to process the images.
+    It reads all the names of the files in the directory
+    and populates the structure of dict in a loop
+    calls upon the properties and data
+    """
+
+    filenames_only = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    i=0
+    
+    new_path=data_path/'SPLIT'
+    
+    if new_path not in data_path.glob("*"):
+        os.mkdir(new_path)
+        
+    new_filenames_only = [f for f in os.listdir(new_path) if os.path.isfile(os.path.join(new_path, f))]
+        
+    if len(new_filenames_only)==0:
+    
+        for filename in filenames_only:
+            split_image(filename,path,4,2,new_path)
+    
+        
+    filenames_only=[]
+    filenames_only=new_filenames_only    
+        
+        
+    for filename in filenames_only:
+        #THIS IS THE IMPORTANT ROW IN THIS PART
+        sk_struct['photo_name'].append(filename)
+        print(i)
+        i+=1
+        imagePath=new_path/filename
+        filenames.append(imagePath)
+        load_data_and_basic_ops(imagePath, 224, 224)
+        '''
+        if i>1: 
+            break
+        else: i=i+1
+        '''
+
 def load_data_and_basic_ops(path, h, w):
     """
     Part2/2 of the basic setup used to process the images. It is called by part 1/2
+    Does the first processing of the images- basically transposes images into a vector 
     """
     
     img = cv2.imread(str(path))
@@ -134,28 +189,24 @@ def load_data_and_basic_ops(path, h, w):
     #THIS IS THE IMPORTANT ROW IN THIS PART
     sk_struct['flattenPhoto'].append(extractedFeatures.flatten())
 
-def read_and_store_img(path):
-    """
-    Part1/2 of the basic setup used to process the images. 
-    It is called from main at the moment and sets up the looping
-    """
+def split_image(filename,path,w_size,h_size,new_path):
+    
+    img=cv2.imread(str(path/filename))
+    
+    height, width, channels = img.shape
 
-    filenames_only = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-    i=0
-    for filename in filenames_only:
+    for ih in range(h_size ):
+        for iw in range(w_size ):
+   
+            x = width/w_size * iw 
+            y = height/h_size * ih
+            h = (height / h_size)
+            w = (width / w_size )
+            
+            img2 = img[int(y):int(y+h), int(x):int(x+w)]
+            name=str(filename[:-4])+"-"+str(ih)+str(iw)+".png"
+            cv2.imwrite(os.path.join(new_path,name),img2)
 
-        #THIS IS THE IMPORTANT ROW IN THIS PART
-        sk_struct['photo_name'].append(filename)
-        print(i)
-        i+=1
-        imagePath=path/filename
-        filenames.append(imagePath)
-        load_data_and_basic_ops(imagePath, 224, 224)
-        '''
-        if i>1: 
-            break
-        else: i=i+1
-        '''
      
 def splitting(c_X,c_path,c_unique_labels,c_labels):
     count_start=0
