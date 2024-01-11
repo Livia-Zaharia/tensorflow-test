@@ -1,5 +1,5 @@
 contourpy==1.2.0
-keras==2.14.0
+#keras==2.14.0
 Markdown==3.5.1
 matplotlib==3.8.2
 ml-dtypes==0.2.0
@@ -11,7 +11,7 @@ Pillow==10.1.0
 plotly==5.18.0
 scikit-learn==1.3.2
 scipy==1.11.4
-#tensorflow==2.14.1
+#tensorflow==2.10
 tensorflow[and-cuda]
 vit-keras==0.1.2
 tensorflow_wavelets
