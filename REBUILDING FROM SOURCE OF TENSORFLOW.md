@@ -1,81 +1,81 @@
-# NVIDIA CUDA CUDNN TENSORRT INSTALLATION FOR WSL
+# REBUILDING FROM SOURCE OF TENSORFLOW
 
-It is assumed you already have installed the WSL package on Windows
-If not check the read me on that topic
-Keep in mind your configuration of OS- if on WSL probably Ubuntu something. It is going to be needed due to compatibility
+To compile the necessary Tensorflow for Gpu enabling you must
 
-Also it is assumed you have a Cuda compatible hardware. you can check if it is so using
-[this](https://www.techpowerup.com/download/techpowerup-gpu-z/)
+1. if on windows install WSL as found [here](https://learn.microsoft.com/en-us/windows/wsl/install)
 
+From here on the steps are all in Linux/WSL
 
-## The official documentation
-Found [here](https://docs.nvidia.com/cuda/wsl-user-guide/index.html) 
-and [here too](https://docs.nvidia.com/cuda/wsl-user-guide/index.html?highlight=cudnn%20on%20wsl2#getting-started-with-cuda-on-wsl-2)
+2. install python and dependencies in Linux as shown [here](https://phoenixnap.com/kb/how-to-install-python-3-ubuntu)
 
+3. on the terminal in Linux install Bazel as shown [here](https://bazel.build/install/ubuntu)
 
-## NOTE OF CAUTION
-If your intention is installing all the dependencies INCLUDING Tensorrt keep in mind the compatibility issues
+4. in VS code install bazel and wsl extensions
 
-#### TensorRt 8.6 GA (which is the latest version for now- Jan 2024)
-is compatible on CUDA 12.1 (but not further)
-and
-#### CUDA 12.1 
-is compatible to CudNN 8.9.0.131 (but not further) 
+5. For reference reasons check your OS version with
+`lsb_release -a` 
 
-So what you want to install is 
-#### CUDA 12.1
-#### CudNN 8.9.0.131
-#### TensorRt 8.6 GA
+6. follow INSTALLING NVIDIA CUDA_CUDNN_TENSORT_FOR  WSL read-me instructions
 
-#
-## THE INSTALLATION
+7. download source for Tensorflow from git as seen [here](https://github.com/tensorflow/tensorflow)
 
-1. Start with the Cuda from [here](https://developer.nvidia.com/cuda-toolkit-archive) if you want a different config from the latest 
-or if you just want to go with 12.1 [try this one](https://developer.nvidia.com/cuda-12-1-1-download-archive?target_os=Linux&target_arch=x86_64&Distribution=WSL-Ubuntu&target_version=2.0&target_type=deb_local)
+8. open the ubuntu terminal in VS code and run configure.py
 
-2. Before continuing to cudNN use 
-
-    `apt-cache policy libcudnn8`
-
-    in Linux terminal to check the compatibility as explained [here](https://forums.developer.nvidia.com/t/e-version-8-3-1-22-1-cuda10-2-for-libcudnn8-was-not-found/200801/23)
-
-3. Download the version required from [here](https://developer.nvidia.com/rdp/cudnn-archive)
-NOTE:
-If at step 2. you couldn't find the version required just check with the release dates by compatibility
-And if you are wondering what is the difference between same OS, same cudnn version but different endings in the files (like aarch64sbsa vs cross-sbsa vs none)- it is related to the architecture of your GPU- just go with the simple version
-
-4. After having found your version you should be able to follow the instructions from [here](https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html)
-
-5. Finally getting to the TensorRT. You should have everything you need [here](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#gettingstarted) 
+9.   
+    python3 configure.py
+    WARNING: current bazel installation is not a release version.
+    Please specify the location of python. [Default is /usr/bin/python3]:
 
 
+    Found possible Python library paths:
+      /usr/lib/python3/dist-packages
+      /usr/local/lib/python3.10/dist-packages
+    Please input the desired Python library path to use.  Default is [/usr/lib/python3/dist-packages]        
 
-However- if it can't work by what it is said in those links- do the following
-    
-5.1 Download the version of TensoRt from [here](https://developer.nvidia.com/nvidia-tensorrt-8x-download) 
-    
-5.2 Use the same command used in cudNN to install from the file downloaded
-`sudo dpkg -i`  
-and the name of the archive
-   
-5.3 don't forget to use
-`sudo apt-get install tensorrt`
+    Do you wish to build TensorFlow with ROCm support? [y/N]: n
+    No ROCm support will be enabled for TensorFlow.
 
-#
-## TROUBLESHOOTING
+    Do you wish to build TensorFlow with CUDA support? [y/N]: y
+    CUDA support will be enabled for TensorFlow.
 
-If by chance your config is not supported you have to backtrack installation and uninstall things
-In the order you installed them because there are dependencies at work
+    Do you wish to build TensorFlow with TensorRT support? [y/N]: y
+    TensorRT support will be enabled for TensorFlow.
 
-You CANNOT just install various other versions- you have to clean install whatever you need- and that means cleaning what has to be cleaned an reinstalling
+    Found CUDA 12.1 in:
+        /usr/local/cuda-12.1/targets/x86_64-linux/lib
+        /usr/local/cuda-12.1/targets/x86_64-linux/include
+    Found cuDNN 8 in:
+        /usr/lib/x86_64-linux-gnu
+        /usr/include
+    Found TensorRT 8.6.1 in:
+        /usr/lib/x86_64-linux-gnu
+        /usr/include/x86_64-linux-gnu
 
-keep in mind-these commands were very useful
 
-`dpkg -l | grep` 
-followed by what you want to search such as cudnn or cuda
-it will list everything there is with that name and what you have to uninstall
+    Please specify a list of comma-separated CUDA compute capabilities you want to build with.
+    You can find the compute capability of your device at: https://developer.nvidia.com/cuda-gpus. Each capability can be specified as "x.y" or "compute_xy" to include both virtual and binary GPU code, or as "sm_xy" to only include the binary code.
+    Please note that each additional compute capability significantly increases your build time and binary size, and that TensorFlow only supports compute capabilities >= 3.5 [Default is: 8.9]: 8.9
 
-`sudo dpkg --remove`
-or
-`sudo dpkg --purge`
-followed by the name of the archive you have to uninstall
+
+    Do you want to use clang as CUDA compiler? [Y/n]: n
+    nvcc will be used as CUDA compiler.
+
+    Please specify which gcc should be used by nvcc as the host compiler. [Default is /usr/bin/gcc]:
+
+
+    Please specify optimization flags to use during compilation when bazel option "--config=opt" is specified [Default is -Wno-sign-compare]:
+
+
+    Would you like to interactively configure ./WORKSPACE for Android builds? [y/N]:
+    Not configuring the WORKSPACE for Android builds.
+
+    Preconfigured Bazel build configs. You can use any of the below by adding "--config=<>" to your build command. See .bazelrc for more details.
+            --config=mkl            # Build with MKL support.
+            --config=mkl_aarch64    # Build with oneDNN and Compute Library for the Arm Architecture (ACL).  
+            --config=monolithic     # Config for mostly static monolithic build.
+            --config=numa           # Build with NUMA support.
+            --config=dynamic_kernels        # (Experimental) Build kernels into separate shared objects.     
+            --config=v1             # Build with TensorFlow 1 API instead of TF 2 API.
+    Preconfigured Bazel build configs to DISABLE default on features:
+            --config=nogcp          # Disable GCP support.
+            --config=nonccl         # Disable NVIDIA NCCL support.
