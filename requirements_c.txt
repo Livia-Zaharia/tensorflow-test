@@ -1,0 +1,17 @@
+contourpy==1.2.0
+#keras==2.14.0
+Markdown==3.5.1
+matplotlib==3.8.2
+ml-dtypes==0.2.0
+#numpy==1.26.2
+opencv-python
+pandas
+path
+Pillow
+plotly
+scikit-learn
+scipy
+#tensorflow==2.10
+#tensorflow[and-cuda]
+vit-keras
+tensorflow_wavelets

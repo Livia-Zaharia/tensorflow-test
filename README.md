@@ -74,6 +74,9 @@ If by chance anyone wondered why there has to be two separate enviorments for th
 ### Activating the enviorment
 `source envlinux/bin/activate`
 
+### Making sure you have the right endings
+`find /path/to/directory -type f -exec dos2unix {} \;`
+
 ### Deactivating the enviorment
 `deactivate`
 
