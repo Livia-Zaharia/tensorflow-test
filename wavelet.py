@@ -18,7 +18,7 @@ class WaveletTransformLayer(tf.keras.layers.Layer):
     inputs = tf.reshape(inputs, (1, 1,(tf.sqrt(float(tf.shape(inputs)[-1]))), (tf.sqrt(float(tf.shape(inputs)[-1])))))
     coeffs = self.wavelet_transform(inputs)
     
-    #should be of shape [46,46] ideea e sa scot padding si sa le aplic pe cele doua ca filtre hopefully
+    #should be of shape [46,46] ideea is to remove the padding and apply those two as filters
     filter1=coeffs[0][0]
     filter2=coeffs[0][1]
     
@@ -50,8 +50,6 @@ class WaveletTransformLayer(tf.keras.layers.Layer):
     tensor_extended = tf.concat([tensor_extended, new_element], axis=1)
     filter2=tensor_extended
     
-    #filter1 = filter1(original_inputs)
-    #filter2 = filter2(original_inputs)
     
     return filter1,filter2
 
