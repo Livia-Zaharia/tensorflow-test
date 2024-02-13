@@ -47,6 +47,19 @@ def main():
     # reencoding for the big picture and then rerun of knn and dbscan
     
     reencoded=reencoding(TRAINING_DATA_DIR, filename_value,label_value)
+    print(reencoded)
+    '''
+    Z=np.array(reencoded.values(),dtype='float64')
+    labels = clustering(Z)
+    unique_labels=set(labels)
+
+    ######### Count the number of clusters
+    num_clusters = len(unique_labels) - (1 if -1 in unique_labels else 0)
+    
+    names_single=extract_filenames(TRAINING_DATA_DIR)
+    
+    data_value, label_value,filename_value=splitting(Z,names_single,unique_labels,labels)
+    '''
     
     for label in set(label_value):
         new_path=data_path/str(label)
@@ -54,6 +67,12 @@ def main():
             os.mkdir(new_path)
 
 
+    print(label_value)
+    print(label_value.shape)
+    print("++++++++++++")
+    print(filename_value)
+    print(filename_value.shape)
+    
     # copies images in coresponding folder
     for filename, label in zip(filename_value, label_value):
         path=data_path/str(label)
@@ -120,6 +139,10 @@ def create_models():
     knn = NearestNeighbors(n_neighbors=2)
 
 def clustering (X):
+    
+    if len(set(map(tuple,X)))==1:
+       return np.full((len(X),),0)
+   
     ############################# Compute the KNN distance
     
     knn.fit(X)
@@ -263,7 +286,8 @@ def splitting(c_X,c_path,c_unique_labels,c_labels):
     for label in c_unique_labels:
         new_x=filter_the_array(c_X,label,c_labels)
         new_paths=filter_the_array(c_path,label,c_labels)
-        some_x, some_labels, some_paths=compute_dbscan_labels(new_x,new_paths,label)
+        some_x, some_labels, some_paths=compute_dbscan_labels(new_x,new_paths)
+        
        
        #this whole part from here genrates the continuity of numbering
         if -1 in some_labels:
@@ -288,21 +312,13 @@ def filter_the_array(x_val, filter_val, filter_list):
     return np.fromiter((x for (y,x) in enumerate(x_val) if filter_list[y]==filter_val),
                       dtype = 'object') 
 
-def compute_dbscan_labels(object_x, path_x, origin_label):
+def compute_dbscan_labels(object_x, path_x):
     new_x = np.vstack(object_x[:]).astype(np.float64)
     new_path = np.vstack(path_x[:]).astype(str)
+         
     
-    '''
-    if len(set(map(tuple,new_x)))!=1:
-        new_labels = clustering(new_x)
-    else:
-        new_labels=np.full(new_x.size,origin_label)
-        
-    '''
     new_labels = clustering(new_x)
-    print(new_labels)
-    print(type(new_labels))
-    
+       
         
     new_unique_labels=set(new_labels)
     
