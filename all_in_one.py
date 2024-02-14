@@ -48,8 +48,8 @@ def main():
     
     reencoded=reencoding(TRAINING_DATA_DIR, filename_value,label_value)
     print(reencoded)
-    '''
-    Z=np.array(reencoded.values(),dtype='float64')
+    
+    Z=np.array([lst if lst else [0,0,0,0,0,0,0,0] for lst in reencoded.values()],dtype='float64')
     labels = clustering(Z)
     unique_labels=set(labels)
 
@@ -59,7 +59,7 @@ def main():
     names_single=extract_filenames(TRAINING_DATA_DIR)
     
     data_value, label_value,filename_value=splitting(Z,names_single,unique_labels,labels)
-    '''
+    
     
     for label in set(label_value):
         new_path=data_path/str(label)
@@ -76,7 +76,7 @@ def main():
     # copies images in coresponding folder
     for filename, label in zip(filename_value, label_value):
         path=data_path/str(label)
-        shutil.copy(str(filename[0]),path)
+        shutil.copy(TRAINING_DATA_DIR/str(filename[0]),path)
         
 
     
