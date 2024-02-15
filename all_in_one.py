@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import time
+import copy
 
 from sklearn.cluster import DBSCAN
 from sklearn.neighbors import NearestNeighbors
@@ -42,12 +43,17 @@ def main():
     
     data_value, label_value,filename_value=splitting(X,filenames,unique_labels,labels)
 
+    g=generic_image_generator(data_value, label_value)
+    label_value=sort_label_according_to_image(g, label_value)
+
     #######################################################################
     #from here we have the images divided in their folder- what we need is 
     # reencoding for the big picture and then rerun of knn and dbscan
+    # BUT also a function to sort the labels- clasyfing the labels basically
     
     reencoded=reencoding(TRAINING_DATA_DIR, filename_value,label_value)
     print(reencoded)
+    
     
     Z=np.array([lst if lst else [0,0,0,0,0,0,0,0] for lst in reencoded.values()],dtype='float64')
     labels = clustering(Z)
@@ -76,6 +82,7 @@ def main():
     # copies images in coresponding folder
     for filename, label in zip(filename_value, label_value):
         path=data_path/str(label)
+        #shutil.copy(str(filename[0]),path)
         shutil.copy(TRAINING_DATA_DIR/str(filename[0]),path)
         
 
@@ -217,8 +224,8 @@ def read_and_store_img(path):
         filenames.append(imagePath)
         load_data_and_basic_ops(imagePath, 224, 224)
        
-        '''
-        if i>500: 
+        ''' 
+        if i>100: 
             break
         else: i=i+1
         print(filename)
@@ -356,7 +363,70 @@ def reencoding(path, filename_value, label_value):
     return re
         
         
+def generic_image_generator(data_value, label_value):
+    
+    gig={}
+    
+    for label in set(label_value):
+        gig.setdefault(label,[0]*len(data_value[0]))
         
+    for i, label in enumerate(label_value):
+        gig[label]=gig[label]+data_value[i]
+        
+    for label in set(label_value):
+        gig[label]=gig[label]/(gig[label].max())
+        
+    return gig
+
+def sort_label_according_to_image(g, label_value):
+    re_g=[]
+    re_dict={}
+    
+    new_label_value=[]
+    
+    for label in set(label_value):
+        #print(label)
+        position=[]
+        value=[]
+        avrg_val=0
+        #print(g[label])
+        for i,pixel in enumerate(g[label]):
+            #print("pix")
+            #print(pixel)
+            if pixel !=0:
+                position.append(i)
+                value.append(pixel)
+                avrg_val=(0.2*i+0.8*pixel)+avrg_val
+            
+        
+        avrg=sum(value)/len(value)
+        #print(position)
+        #print(value)
+
+        re_g.append((avrg+avrg_val,label))
+          
+    #print(re_g)
+    #print("++++++++++++")
+        
+    
+    sorted_re=sorted(re_g, key= lambda x:x[0])
+    for e, element in enumerate (sorted_re):
+        re_dict.setdefault(str(element[1]),e)
+    
+    #print (re_dict)
+    
+    for i, val in enumerate(label_value):
+        new_label_value.append(re_dict[str(val)])
+    
+    #print(new_label_value)
+    
+    return np.array(new_label_value)     
+
+    #criteria to sort and make a final value- avrage of values different from 0
+    #-function of distance and value made from postion
+    #add the two- store result in list, sort list and compare order making a dict                
+    
+          
 
 
 if __name__ == "__main__":
