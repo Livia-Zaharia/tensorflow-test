@@ -12,6 +12,7 @@ import pandas as pd
 import tensorflow as tf
 import time
 import copy
+import math
 
 from sklearn.cluster import DBSCAN
 from sklearn.neighbors import NearestNeighbors
@@ -72,12 +73,13 @@ def main():
         if new_path not in data_path.glob("*"):
             os.mkdir(new_path)
 
-
+    '''
     print(label_value)
     print(label_value.shape)
     print("++++++++++++")
     print(filename_value)
     print(filename_value.shape)
+    '''
     
     # copies images in coresponding folder
     for filename, label in zip(filename_value, label_value):
@@ -93,7 +95,8 @@ def main():
 
 def create_global_structures():
     """
-    Defines some global structures used in the whole script. They are centralized here
+    Defines some global structures used in the whole script. 
+    They are centralized here
     """
     
     #strucutre in which to hold the image and its name
@@ -113,10 +116,12 @@ def create_global_structures():
 def create_models():
     """
     Define the models. There are only two of them
-    The Resnet model- comes from tf.keras.applications- and because it is not defined from 
+    The Resnet model- comes from tf.keras.applications- and because it
+    is not defined from 
     tf.keras.model.sequential it is taken as a functional one
     
-    the wavelet model- created because the wtl class only creates a layer- not a model
+    the wavelet model- created because the wtl class only creates a layer- 
+    not a model
     the model is also a functional API one and distills the the resnet
     """
     ############### RESNET MODEL DEFINITION
@@ -146,6 +151,11 @@ def create_models():
     knn = NearestNeighbors(n_neighbors=2)
 
 def clustering (X):
+    '''
+    Creates the clustering- it applies the k-means nearest neighbours 
+    on the values provided, obtains an avrage distance to be used as the 
+    parameter eps then using DBSCAN it takes out the clusters proposed
+    '''
     
     if len(set(map(tuple,X)))==1:
        return np.full((len(X),),0)
@@ -173,13 +183,16 @@ def clustering (X):
 
 
 def extract_filenames(path):
+    '''
+    Just extracts the filenames in the directory provided
+    '''
     return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
 
 def read_and_store_img(path):
     """
     Part1/2 of the basic setup used to process the images.
     It reads all the names of the files in the directory
-    and populates the structure of dict in a loop
+    and populates the structure of dict in a loop.
     calls upon the properties and data
     """
 
@@ -224,17 +237,18 @@ def read_and_store_img(path):
         filenames.append(imagePath)
         load_data_and_basic_ops(imagePath, 224, 224)
        
-        ''' 
-        if i>100: 
+    '''
+        if i>50: 
             break
         else: i=i+1
         print(filename)
-       '''
-        
+        '''
+               
 def load_data_and_basic_ops(path, h, w):
     """
     Part2/2 of the basic setup used to process the images. It is called by part 1/2
-    Does the first processing of the images- basically transposes images into a vector 
+    Does the first processing of the images- basically transposes images 
+    into a vector 
     """
     
     img = cv2.imread(str(path))
@@ -268,18 +282,23 @@ def split_image(filename,path,w_size,h_size,new_path):
     """
     It only activiates if the data is not split already so it won't be 
     found in other places but in read_and_store
+    what it does is -it takes an image and split it into equal parts according to 
+    the number of parts requested by the input
     """
     img=cv2.imread(str(path/filename))
     
     height, width, channels = img.shape
+    
+    h = (height / h_size)
+    w = (width / w_size )
+    #relocated here because they are constants
 
     for ih in range(h_size ):
         for iw in range(w_size ):
    
             x = width/w_size * iw 
             y = height/h_size * ih
-            h = (height / h_size)
-            w = (width / w_size )
+
             
             img2 = img[int(y):int(y+h), int(x):int(x+w)]
             name=str(filename[:-4])+"-"+str(ih)+str(iw)+".png"
@@ -289,6 +308,12 @@ def split_image(filename,path,w_size,h_size,new_path):
      
      
 def splitting(c_X,c_path,c_unique_labels,c_labels):
+    '''
+    This part is the recursive splitting- what it does is simply continue to 
+    subdvide the images once clusterred recursively until DBSCAN can return only one cluster
+    It is used to search among a more restricted group of images for differences which might 
+    constitute a separate group
+    '''
     count_start=0
     for label in c_unique_labels:
         new_x=filter_the_array(c_X,label,c_labels)
@@ -316,17 +341,24 @@ def splitting(c_X,c_path,c_unique_labels,c_labels):
     return (prev_x,prev_label, prev_path)
                  
 def filter_the_array(x_val, filter_val, filter_list):
+    '''
+    Used to filter the elements from an array using a value
+    might be reconsidered to be changed as in not to pass 
+    through the array several times
+    '''
     return np.fromiter((x for (y,x) in enumerate(x_val) if filter_list[y]==filter_val),
                       dtype = 'object') 
 
 def compute_dbscan_labels(object_x, path_x):
+    '''
+    where it is checked whether or not there are 
+    remaining divisions to be made to the cluster
+    '''
     new_x = np.vstack(object_x[:]).astype(np.float64)
     new_path = np.vstack(path_x[:]).astype(str)
          
-    
     new_labels = clustering(new_x)
        
-        
     new_unique_labels=set(new_labels)
     
     if len(new_unique_labels) != 1:
@@ -337,6 +369,13 @@ def compute_dbscan_labels(object_x, path_x):
 
 
 def reencoding(path, filename_value, label_value):
+    '''
+    Used to reencode the image- basically convert from data_value which is the
+    image representation for each pixel into something along the lines of 
+    eight numbers- that represent the cluster where the 1/8 parts of the 
+    images were included
+    returns a dict with image name as key and an array of 8 numbers as value
+    '''
     
     re={}
     names_single=extract_filenames(path)
@@ -364,7 +403,11 @@ def reencoding(path, filename_value, label_value):
         
         
 def generic_image_generator(data_value, label_value):
-    
+    '''
+    generates a composite image representation of all the images in the said
+    cluster.simply put takes every pixel value from every image and does a normalization 
+    after having been summed
+    '''
     gig={}
     
     for label in set(label_value):
@@ -381,6 +424,8 @@ def generic_image_generator(data_value, label_value):
 def sort_label_according_to_image(g, label_value):
     re_g=[]
     re_dict={}
+    n=224/4
+    #n is hard encoded
     
     new_label_value=[]
     
@@ -388,7 +433,7 @@ def sort_label_according_to_image(g, label_value):
         #print(label)
         position=[]
         value=[]
-        avrg_val=0
+        
         #print(g[label])
         for i,pixel in enumerate(g[label]):
             #print("pix")
@@ -396,14 +441,25 @@ def sort_label_according_to_image(g, label_value):
             if pixel !=0:
                 position.append(i)
                 value.append(pixel)
-                avrg_val=(0.2*i+0.8*pixel)+avrg_val
-            
+                            
         
         avrg=sum(value)/len(value)
-        #print(position)
-        #print(value)
+        #print("++++-+-+-+- avrg")
+        #print(np.array(avrg).shape)
+        ## it does not return only a value but an array
+        avrg_val_left=vector_transition(0,position, value,n)
+        avrg_val_middle=vector_transition(n,position, value,n)
+        avrg_val_right=vector_transition(n/2,position, value,n)
+        avrg_val=avrg_val_left+avrg_val_middle+avrg_val_right
+        #print("++++-+-+-+- avrg_val")
+        #print(np.array(avrg_val).shape)
+        
+        
+        
+        #print(avrg+avrg_val)
+       # print(label)
 
-        re_g.append((avrg+avrg_val,label))
+        re_g.append((avrg+ math.fsum(avrg_val)/len(avrg_val),label))
           
     #print(re_g)
     #print("++++++++++++")
@@ -426,8 +482,12 @@ def sort_label_according_to_image(g, label_value):
     #-function of distance and value made from postion
     #add the two- store result in list, sort list and compare order making a dict                
     
-          
-
+def vector_transition(origin, position, value,no_of_max_per_row):
+    matrix=convert_to_matrix(position,no_of_max_per_row,origin)
+    return list(v*m[0]+v*m[1] for v,m in zip(value,matrix))## not good in shape
+      
+def convert_to_matrix(position,no_of_max_per_row,origin):
+     return list((i/no_of_max_per_row-origin, i%no_of_max_per_row) for i in position)
 
 if __name__ == "__main__":
     main()
