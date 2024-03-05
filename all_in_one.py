@@ -13,6 +13,8 @@ import tensorflow as tf
 import time
 import copy
 import math
+import typing as t
+import numpy.typing as npt
 
 from sklearn.cluster import DBSCAN
 from sklearn.neighbors import NearestNeighbors
@@ -93,7 +95,7 @@ def main():
 
 
 
-def create_global_structures():
+def create_global_structures() -> None:
     """
     Defines some global structures used in the whole script. 
     They are centralized here
@@ -113,7 +115,7 @@ def create_global_structures():
     global filenames
     filenames=[]
 
-def create_models():
+def create_models() -> None:
     """
     Define the models. There are only two of them
     The Resnet model- comes from tf.keras.applications- and because it
@@ -150,8 +152,17 @@ def create_models():
     global knn
     knn = NearestNeighbors(n_neighbors=2)
 
-def clustering (X):
+def clustering (X:npt.NDArray[np.ArrayLike[np.float64]]) -> t.List[float]:
     '''
+    Inputs: npt.NDArray[np.ArrayLike[np.float64]]
+    np.Array containing 
+        the number of list elements 
+            that have the image flattened data in float
+            
+    Outputs:
+    np.Array containing
+        the number of elements representing the labels
+        
     Creates the clustering- it applies the k-means nearest neighbours 
     on the values provided, obtains an avrage distance to be used as the 
     parameter eps then using DBSCAN it takes out the clusters proposed
@@ -182,14 +193,22 @@ def clustering (X):
 
 
 
-def extract_filenames(path):
+def extract_filenames(path:Path) -> t.List[Path]:
     '''
+    Input:
+    Path- str value representing the path where the files are stored
+    
+    Output:
+    t.List[t.Text]-list of paths to the contained files in the folder
+    
     Just extracts the filenames in the directory provided
     '''
     return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
 
-def read_and_store_img(path):
+def read_and_store_img(path:Path) -> None:
     """
+    Input: Path- str value representing the path where the files are stored
+        
     Part1/2 of the basic setup used to process the images.
     It reads all the names of the files in the directory
     and populates the structure of dict in a loop.
@@ -244,8 +263,13 @@ def read_and_store_img(path):
         print(filename)
         '''
                
-def load_data_and_basic_ops(path, h, w):
+def load_data_and_basic_ops(path:Path, h:int, w:int) -> None:
     """
+    Input:
+    path- Path, for each image in part
+    h- int- height parameter to edit image size
+    w- int- width parameter to edit image size
+    
     Part2/2 of the basic setup used to process the images. It is called by part 1/2
     Does the first processing of the images- basically transposes images 
     into a vector 
@@ -278,8 +302,15 @@ def load_data_and_basic_ops(path, h, w):
     #THIS IS THE IMPORTANT ROW IN THIS PART
     sk_struct['flattenPhoto'].append(extractedFeatures.flatten())
 
-def split_image(filename,path,w_size,h_size,new_path):
+def split_image(filename:str,path:Path,w_size:int,h_size:int ,new_path:Path) -> None:
     """
+    Input:
+    filename- str, only the name of the file
+    path- Path, text format, only the path to be used- where to find the image
+    w_size- int, no of pieces to be split on width
+    h_size- int, no of pieces to be split on height
+    new_path- Path, where to save the files
+        
     It only activiates if the data is not split already so it won't be 
     found in other places but in read_and_store
     what it does is -it takes an image and split it into equal parts according to 
@@ -307,8 +338,40 @@ def split_image(filename,path,w_size,h_size,new_path):
      
      
      
-def splitting(c_X,c_path,c_unique_labels,c_labels):
+def splitting(c_X:npt.NDArray[np.ArrayLike[np.float64]],
+              c_path:t.List[Path],c_unique_labels:t.Set[int],
+              c_labels:t.List[float]) -> t.Tuple[npt.NDArray[np.ArrayLike[np.float64]],t.List[float],t.List[Path]] :
     '''
+    Input:
+    c_X-npt.NDArray[np.ArrayLike[np.float64]]
+    np.Array containing 
+        the number of list elements 
+            that have the image flattened data in float
+            
+    c_path-t.List[Path]
+    list of paths to the contained files in the folder
+    
+    c_unique_labels-t.Set[int]
+    a set with all the possible labels but taken only once
+    
+    c_labels-t.List[float]
+    np.Array containing
+        the number of elements representing the labels
+        
+    
+    Output:
+    prev_x-npt.NDArray[np.ArrayLike[np.float64]]
+    np.Array containing 
+        the number of list elements 
+            that have the image flattened data in float
+            
+    prev_label-t.List[float]
+    np.Array containing
+        the number of elements representing the labels
+        
+    prev_path-t.List[Path]
+    list of paths to the contained files in the folder
+    
     This part is the recursive splitting- what it does is simply continue to 
     subdvide the images once clusterred recursively until DBSCAN can return only one cluster
     It is used to search among a more restricted group of images for differences which might 
@@ -340,8 +403,21 @@ def splitting(c_X,c_path,c_unique_labels,c_labels):
     
     return (prev_x,prev_label, prev_path)
                  
-def filter_the_array(x_val, filter_val, filter_list):
+def filter_the_array(x_val:npt.NDArray, filter_val:int, filter_list:t.List[int]) -> npt.NDArray:
     '''
+    Input:
+    x_val-npt.NDArray
+    the np.Array we have to filter based on filter values and list
+    
+    filter_val-int
+    the criterion we are searching by
+    
+    filter_list-t.List[int]
+    the list we are using as reference
+    
+    Output:
+    a slice of the np.Array based on the requirements
+    
     Used to filter the elements from an array using a value
     might be reconsidered to be changed as in not to pass 
     through the array several times
@@ -349,8 +425,23 @@ def filter_the_array(x_val, filter_val, filter_list):
     return np.fromiter((x for (y,x) in enumerate(x_val) if filter_list[y]==filter_val),
                       dtype = 'object') 
 
-def compute_dbscan_labels(object_x, path_x):
+def compute_dbscan_labels(object_x:npt.NDArray[np.ArrayLike[np.float64]], 
+                          path_x:npt.NDArray[np.ArrayLike[Path]]) -> t.Tuple[npt.NDArray[np.ArrayLike[np.float64]],t.List[float],t.List[Path]]:
     '''
+    Input:
+    object_x-npt.NDArray[np.ArrayLike[np.float64]]
+    the data object list
+     
+    path_x-npt.NDArray[np.ArrayLike[Path]]
+    the paths for all the objects
+    
+    Output:
+    new_x-npt.NDArray[np.ArrayLike[np.float64]]
+    
+    new_labels -t.List[float]
+    
+    new_path-t.List[Path]
+    
     where it is checked whether or not there are 
     remaining divisions to be made to the cluster
     '''
